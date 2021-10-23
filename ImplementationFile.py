@@ -5,7 +5,7 @@ from PhysicsEngine import EulerMethod_Propogator, SystemParameter, hat, diff1Fun
 
 StateDim = 3
 Ts = 1/3000
-T_end = 15
+T_end = 10
 
 #Simple controller
 def PID(x, dx, ddx, params):
@@ -33,8 +33,8 @@ Parameters.addProperty("Imat", Imat)
 
 ContParam = SystemParameter()
 ContParam.addProperty("Imat", Imat)
-ContParam.addProperty("a", 0.021)
-ContParam.addProperty("T", 1/50)
+ContParam.addProperty("a", 0.01)
+ContParam.addProperty("T",0.01)
 
 u_in = np.matrix([[0],[0],[0]])
 
@@ -53,7 +53,7 @@ PE.Ts_controller = 1/10
 
 PE.ControllerFunction = RigidBodyNewton
 PE.ControllerParam = ContParam
-PE.Ts_controller = 1/25
+PE.Ts_controller = 1/100
 
 startT =  time.time()
 PE.EulerLoop_w_Controller()

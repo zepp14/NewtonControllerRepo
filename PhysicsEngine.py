@@ -109,7 +109,7 @@ class EulerMethod_Propogator(object):
             if(abs(Ts - Tc_last) > Tsc):
                 Tc_last = Ts
                 u_in = self.ControllerFunction(x, dx, ddx, self.ControllerParam)
-
+                #print(ddx)
             x, dx, ddx = self.OneStep(u_in, x, dx, ddx, t)
             self.storeResults(x, dx, ddx)
 
