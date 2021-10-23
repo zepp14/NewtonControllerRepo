@@ -105,10 +105,11 @@ class EulerMethod_Propogator(object):
         t = self.Ts_world
         Tc_last = 0
         Tsc = self.Ts_controller
+        u_in = self.ControllerFunction(x, dx, ddx, self.ControllerParam, u_in)
         for Ts in self.TimeVect:
             if(abs(Ts - Tc_last) > Tsc):
                 Tc_last = Ts
-                u_in = self.ControllerFunction(x, dx, ddx, self.ControllerParam)
+                u_in = self.ControllerFunction(x, dx, ddx, self.ControllerParam, u_in)
                 #print(ddx)
             x, dx, ddx = self.OneStep(u_in, x, dx, ddx, t)
             self.storeResults(x, dx, ddx)

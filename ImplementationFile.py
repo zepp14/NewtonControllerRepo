@@ -16,7 +16,7 @@ def PID(x, dx, ddx, params):
     return u
 
 #Newton controller
-def RigidBodyNewton(x, dx, ddx, params):
+def RigidBodyNewton(x, dx, ddx, params,u_in):
     Im = params.Imat
     a = params.a
     T = params.T
@@ -33,8 +33,8 @@ Parameters.addProperty("Imat", Imat)
 
 ContParam = SystemParameter()
 ContParam.addProperty("Imat", Imat)
-ContParam.addProperty("a", 0.01)
-ContParam.addProperty("T",0.01)
+ContParam.addProperty("a", 0.05)
+ContParam.addProperty("T",1/50)
 
 u_in = np.matrix([[0],[0],[0]])
 
@@ -44,7 +44,7 @@ PE = EulerMethod_Propogator(StateDim, Ts, T_end,
 
 
 PE.InitialCondition_state  = np.matrix([0,0,0]).transpose()
-PE.InitialCondition_d_state  = np.matrix([1,-2,2]).transpose()
+PE.InitialCondition_d_state  = np.matrix([1,0,0]).transpose()
 PE.InitialCondition_dd_state  = np.matrix([0,0,0]).transpose()
 
 PE.ControllerFunction = PID
