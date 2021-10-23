@@ -16,6 +16,9 @@ class EulerMethod_Propogator(object):
     def __init__(self, StateDim, Ts_world, T_end, diff1_fun, diff1_args, diff2_fun=None,  diff2_args=None):
         self.StateDim = StateDim
         self.Ts_world = Ts_world
+        self.ControllerFunction = None
+        self.ControllerParam = None
+        self.Ts_controller = None
         #standard Function Input:
         # func(u_in , params, State, dState, ddState)
         self.FirstDeriv = diff1_fun
@@ -89,169 +92,8 @@ class EulerMethod_Propogator(object):
         self.ddStateVector = np.array(self.ddStateVector)
     
         
+    def EulerLoop_w_Controller(self):
 
-
-
-
-#Propogator Class
-class RungeKutta4_Propogator(object):
-    def __init__(self, StateDim, Ts_world, T_end, diff1_fun, diff1_args, diff2_fun=None,  diff2_args=None):
-
-        self.StateDim = StateDim
-        self.Ts_world = Ts_world
-        #standard Function Input:
-        # func(u_in , params, State, dState, ddState)
-        self.FirstDeriv = diff1_fun
-        self.FirstDeriv_args =  diff1_args
-
-        self.SecondDeriv = diff2_fun
-        self.SecondDeriv_args =  diff2_args
-        TimeVect = [] 
-        TCond = 0
-        while TCond < T_end:
-            TCond = TCond + Ts_world
-            TimeVect.append(TCond)
-        self.TimeVect = np.array(TimeVect)
-
-        self.StateVector = []
-        self.dStateVector = []
-        self.ddStateVector = []
-        
-        self.InitialCondition_state = np.asmatrix(np.zeros((StateDim,1)))
-        self.InitialCondition_d_state = np.asmatrix(np.zeros((StateDim,1)))
-        self.InitialCondition_dd_state = np.asmatrix(np.zeros((StateDim,1)))
-
-
-    def EvalDiff2RK(self, x0, dx0, ddx0, u_in, t):
-        h = t
-        
-        func1 = self.FirstDeriv
-        func2 = self.SecondDeriv
-        args = self.SecondDeriv_args
-
-        ds_a = dx0 + 0 * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0)
-        s_a =  x0 + 0*ds_a + (1/2)*(0**2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0)
-        k1 = func2(u_in , params=args, State=s_a, dState=ds_a, ddState=ddx0)
-
-
-        ds_b = dx0 + (h/2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k1*(h/2))
-        s_b =  x0 + (h/2)*ds_b + (1/2)*((h/2)**2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k1*(h/2))
-        k2 = func2(u_in , params=args, State=s_b, dState=ds_b, ddState=(ddx0+k1*(h/2)))
-
-        ds_c = dx0 + (h/2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k2*(h/2))
-        s_c =  x0 + (h/2)*ds_c + (1/2)*((h/2)**2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k2*(h/2))
-        k3 = func2(u_in , params=args, State=s_c, dState=ds_c, ddState=(ddx0+k2*(h/2)))
-        
-        ds_d = dx0 + (h) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k3*(h))
-        s_d =  x0 + (h)*ds_d + (1/2)*((h)**2) * func2 (u_in , params=args, State=x0, dState=dx0, ddState=ddx0+k3*(h))
-        k4 = func2(u_in , params=args, State=x0, dState=ds_c, ddState=(ddx0+k3*(h)))
-
-        out = ddx0 + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4)
-        
-        
-        return out
-
-    def EvalDiff1RK(self, x0, dx0, ddx0, u_in, t):
-        h = t
-        
-        func1 = self.FirstDeriv
-        func2 = self.SecondDeriv
-        args = self.SecondDeriv_args
-
-        dds_a = self.EvalDiff2RK(x0, dx0, ddx0, u_in, t=0)
-        s_a =  x0 + 0*dx0 + (1/2)*(0**2) * dds_a 
-        k1 = func1(u_in , params=args, State=s_a, dState=dx0, ddState=dds_a)
-
-        dds_b = self.EvalDiff2RK(x0, (dx0+k1*(h/2)), ddx0, u_in, t=(h/2))
-        s_b =  x0 + (h/2)*(dx0+k1*(h/2))+ (1/2)*((h/2)**2) * dds_b 
-        k2 = func1(u_in , params=args, State=s_b, dState=(dx0+k1*(h/2)), ddState=dds_b)
-
-        dds_c = self.EvalDiff2RK(x0, (dx0+k2*(h/2)), ddx0, u_in, t=(h/2))
-        #dds_c = dds_b
-        s_c =  x0 + (h/2)*(dx0+k2*(h/2))+ (1/2)*((h/2)**2) * dds_c 
-        k3 = func1(u_in , params=args, State=s_c, dState=(dx0+k2*(h/2)), ddState=dds_c)
-        
-        dds_d = self.EvalDiff2RK(x0, (dx0+k3*(h)), ddx0, u_in, t=(h))
-        #dds_d = 2*dds_c
-        s_d =  x0 + (h)*(dx0+k3*(h))+ (1/2)*((h)**2) * dds_d 
-        k4= func1(u_in , params=args, State=s_d, dState=(dx0+k3*(h)), ddState=dds_d)
-
-        out = dx0 + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4)
-
-
-        
-        return out
-
-    def EvalStateRK(self, x0, dx0, ddx0, u_in, t):
-        h = t
-        
-
-        dds_a = self.EvalDiff2RK(x0, dx0, ddx0, u_in, t = 0)
-        ds_a =  self.EvalDiff1RK( x0, dx0, ddx0, u_in, t =0)
-        k1 = x0 + (0)*ds_a + (1/2)*((0)**2) * dds_a
-
-        dds_b = self.EvalDiff2RK((x0+k1*(h/2)), dx0, ddx0, u_in, t = h/2)
-        ds_b =  self.EvalDiff1RK((x0+k1*(h/2)), dx0, ddx0, u_in, t = h/2)
-        k2 = (x0 + k1*(h/2)) + ((h/2))*ds_b + (1/2)*(((h/2))**2) * dds_b
-
-        dds_c = self.EvalDiff2RK((x0+k2*(h/2)), dx0, ddx0, u_in, t = h/2)
-        ds_c =  self.EvalDiff1RK((x0+k2*(h/2)), dx0, ddx0, u_in, t = h/2)
-        k3 = (x0 + k2*(h/2)) + ((h/2))*ds_c + (1/2)*(((h/2))**2) * dds_c
-
-        dds_d = self.EvalDiff2RK((x0+k3*(h)), dx0, ddx0, u_in, t = h)
-        ds_d =  self.EvalDiff1RK((x0+k3*(h)), dx0, ddx0, u_in, t = h)
-        k4 = (x0 + k3*(h)) + ((h))*ds_c + (1/2)*(((h))**2) * dds_c
-        
-
-        out = dx0 + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4)
-    
-        
-        return out
-
-    def EvalStateRK_Simple(self, x0, dx0, ddx0, u_in, t):
-        h = t
-
-        dds_a = ddx0
-        ds_a =  self.EvalDiff1RK( x0, dx0, ddx0, u_in, t =0)
-        k1 = x0 + (0)*ds_a + (1/2)*((0)**2) * dds_a
-
-        dds_b = ddx0
-        ds_b =  self.EvalDiff1RK((x0+k1*(h/2)), dx0, ddx0, u_in, t = h/2)
-        k2 = (x0 + k1*(h/2)) + ((h/2))*ds_b + (1/2)*(((h/2))**2) * dds_b
-
-        dds_c = ddx0
-        ds_c =  self.EvalDiff1RK((x0+k2*(h/2)), dx0, ddx0, u_in, t = h/2)
-        k3 = (x0 + k2*(h/2)) + ((h/2))*ds_c + (1/2)*(((h/2))**2) * dds_c
-
-        dds_d = ddx0
-        ds_d =  self.EvalDiff1RK((x0+k3*(h)), dx0, ddx0, u_in, t = h)
-        k4 = (x0 + k3*(h)) + ((h))*ds_d + (1/2)*(((h))**2) * dds_d
-        
-
-        out = dx0 + (1/6)*h*(k1 + 2*k2 + 2*k3 + k4)
-    
-        
-        return out
-
-    def storeResults(self, x, dx, ddx):
-
-        xArr = []
-        dxArr = []
-        ddxArr  = []
-
-        for i in range(0,self.StateDim):
-            xArr.append(x[i,0])
-            dxArr.append(dx[i,0])
-            ddxArr.append(ddx[i,0])
-
-
-        self.StateVector.append(xArr)
-        self.dStateVector.append(dxArr)
-        self.ddStateVector.append(ddxArr)
-
-
-    def RK4_loop(self, u_in):
-        
         self.StateVector = []
         self.dStateVector = []
         self.ddStateVector = []
@@ -259,27 +101,26 @@ class RungeKutta4_Propogator(object):
         x =  self.InitialCondition_state
         dx =  self.InitialCondition_d_state
         ddx =  self.InitialCondition_dd_state
+        u_in =  np.asmatrix(np.zeros((self.StateDim,1)))
         t = self.Ts_world
-
+        Tc_last = 0
+        Tsc = self.Ts_controller
         for Ts in self.TimeVect:
-            print(Ts)
-            ddx_new = self.EvalDiff2RK(x, dx, ddx, u_in, t)
-            dx_new = self.EvalDiff1RK(x, dx, ddx, u_in, t)
-            x_new = self.EvalStateRK_Simple(x, dx, ddx, u_in, t)
-            ddx = ddx_new
-            dx = dx_new
-            x =  x_new
+            if(abs(Ts - Tc_last) > Tsc):
+                Tc_last = Ts
+                u_in = self.ControllerFunction(x, dx, ddx, self.ControllerParam)
+
+            x, dx, ddx = self.OneStep(u_in, x, dx, ddx, t)
             self.storeResults(x, dx, ddx)
 
-
+    
         self.StateVector = np.array(self.StateVector)
         self.dStateVector = np.array(self.dStateVector)
         self.ddStateVector = np.array(self.ddStateVector)
-        #k1 = func(u_in , params=args, State=x0, dState=func, ddState=ddx0)
 
 
-        #print(k1)
-        #self.StateVector = 
+
+
 
 #systemParameter class
 class SystemParameter(object):
@@ -304,7 +145,7 @@ def diff2Function(u_in , params, State, dState, ddState):
     uVec = u_in 
     dStateVec = dState
     #hat(dStateVec)
-    ddState = ImatInv @ ( uVec  - np.cross (dStateVec, (Imat @ dStateVec)))
+    ddState = ImatInv @ ( uVec  - hat(dStateVec)@(Imat @ dStateVec))
 
     return ddState
     
