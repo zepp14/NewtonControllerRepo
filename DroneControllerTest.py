@@ -22,11 +22,12 @@ def SecondDerivFunction(u_in , params, State, dState, ddState, ts=0):
 def NewtonController(x, dx, ddx, params, u):
     T = params.T
     a = params.a
+    b = params.b
     JacobianFunc = params.J
     Jx = JacobianFunc(u, params.SysParams)
     print(Jx)
-
-    u = -(a/T) * np.linalg.inv(Jx) @ (dx + T * ddx) + np.matrix([0,0,params.SysParams.g]).transpose()
+    w0 = -(b/T) * np.eye(3) *(x + T * dx) 
+    u = -(a/T) * np.linalg.inv(Jx) @ (dx -  w0 + T * ddx) + np.matrix([0,0,params.SysParams.g]).transpose()
 
     return u
 
@@ -48,15 +49,16 @@ SysParams.addProperty("m", 1.0)
 
 
 ContParams = SystemParameter()
-ContParams.addProperty("a",0.06)
-ContParams.addProperty("T", 0.04)
+ContParams.addProperty("a",0.03)
+ContParams.addProperty("b",0.01)
+ContParams.addProperty("T", 0.01)
 ContParams.addProperty("J", JacobianFunc)
 ContParams.addProperty("SysParams", SysParams)
 
 PE = EulerMethod_Propogator(StateDim,Ts,T_end,FirstDerivFunction,SysParams,SecondDerivFunction,SysParams)
 
-PE.InitialCondition_state  = np.matrix([0,0,0]).transpose()
-PE.InitialCondition_d_state  = np.matrix([1,0,0]).transpose()
+PE.InitialCondition_state  = np.matrix([1,-1,0]).transpose()
+PE.InitialCondition_d_state  = np.matrix([0,0,0]).transpose()
 PE.InitialCondition_dd_state  = np.matrix([0,0,0]).transpose()
 
 PE.ControllerFunction = NewtonController
