@@ -187,9 +187,6 @@ if __name__ == "__main__":
                                 diff2_fun=diff2Function,  diff2_args=Parameters)
 
 
-    PE_RK = RungeKutta4_Propogator(StateDim, Ts, T_end,
-                                    diff1_fun=diff1Function, diff1_args=Parameters,
-                                    diff2_fun=diff2Function,  diff2_args=Parameters)
 
     PE.InitialCondition_state  = np.matrix([0,0,0]).transpose()
     PE.InitialCondition_d_state  = np.matrix([1,-2,0]).transpose()
