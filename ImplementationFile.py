@@ -27,7 +27,7 @@ def RigidBodyNewton(x, dx, ddx, params,u_in):
 Inonsym = np.matrix([[1, 0.002, -0.002],[0,0.4, -0.001],[0, 0, 0.3]])
 Imat = 0.5 * (Inonsym.transpose() + Inonsym)
 
-
+Imat = np.eye(3)
 Parameters = SystemParameter()
 Parameters.addProperty("Imat", Imat)
 
@@ -44,7 +44,7 @@ PE = EulerMethod_Propogator(StateDim, Ts, T_end,
 
 
 PE.InitialCondition_state  = np.matrix([0,0,0]).transpose()
-PE.InitialCondition_d_state  = np.matrix([1,0,0]).transpose()
+PE.InitialCondition_d_state  = np.matrix([1,-1,2]).transpose()
 PE.InitialCondition_dd_state  = np.matrix([0,0,0]).transpose()
 
 PE.ControllerFunction = PID
